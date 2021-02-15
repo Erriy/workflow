@@ -1,1 +1,11 @@
 # workflow
+
+
+## todo
+
+- [x] 服务器自动部署
+  - [linode文档](https://www.linode.com/docs/api/)
+- [ ] 使用https
+  - [ ] let's encrypt自动续期
+- [x] name 指向修改
+  - [文档](https://www.name.com/zh-cn/api-docs)

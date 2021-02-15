@@ -1,0 +1,40 @@
+name: proxy_recreate
+
+on:
+  push:
+    branches:
+      - 'main'
+
+jobs:
+
+  start_notify:
+    runs-on: ubuntu-20.04
+    steps:
+      - name: notify with bark
+        run: curl -v "https://api.day.app/${{ secrets.barkid }}/workflow proxy recreate action-${GITHUB_REF##*/}\[$GITHUB_RUN_ID\] 开始/点击跳转到action页面?url=https://github.com/Erriy/workflow/actions/runs/$GITHUB_RUN_ID"
+
+  recreate:
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Check out Git repository
+        uses: actions/checkout@v2
+
+      - name: install pip requirements.txt
+        run: pip install -r python/requirements.txt
+
+      - name: proxy recreate
+        env:
+          LINODE_TOKEN: ${{ secrets.LINODE_TOKEN }}
+          LINODE_PASSWORD: ${{ secrets.LINODE_PASSWORD }}
+          NAME_NAME: ${{ secrets.NAME_NAME }}
+          NAME_TOKEN: ${{ secrets.NAME_TOKEN }}
+          NAME_DOMAIN: ${{ secrets.NAME_DOMAIN }}
+        run: python python/linode.py proxy-recreate --recreate --reboot
+
+  finish_notify:
+    if: always()
+    needs: recreate
+    runs-on: ubuntu-20.04
+    steps:
+      - name: notify with bark
+        run: curl -v "https://api.day.app/${{ secrets.barkid }}/workflow proxy recreate action-${GITHUB_REF##*/}\[$GITHUB_RUN_ID\] 结束/点击跳转到action页面?url=https://github.com/Erriy/workflow/actions/runs/$GITHUB_RUN_ID"
