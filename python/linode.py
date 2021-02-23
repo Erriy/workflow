@@ -56,6 +56,7 @@ class linode:
                 time.sleep(3)
 
         def run(cmds):
+            # todo 链接失败重试，三次链接失败后再报错
             ready()
             c = fabric.Connection(host=node.ipv4[0], user='root', connect_kwargs={'password': cls.password})
             result = c.run(cmds)
