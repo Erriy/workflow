@@ -29,7 +29,7 @@ jobs:
           NAME_NAME: ${{ secrets.NAME_NAME }}
           NAME_TOKEN: ${{ secrets.NAME_TOKEN }}
           NAME_DOMAIN: ${{ secrets.NAME_DOMAIN }}
-        run: python python/linode.py proxy-recreate --region us-central --recreate --reboot
+        run: python python/linode.py proxy-recreate --region ap-southeast --recreate --reboot
 
   finish_notify:
     if: always()
