@@ -9,6 +9,9 @@ import requests
 import requests.auth
 
 
+class lets_encrypt:
+    email = os.environ.get('LETS_ENCRYPT_EMAIL')
+
 class linode:
     token = os.environ.get('LINODE_TOKEN')
     password = os.environ.get('LINODE_PASSWORD')
@@ -135,15 +138,20 @@ def proxy_recreate(label, ltype, region, image, subdomain, recreate, reboot):
     # 环境安装
     print('开始初步安装环境并重启')
     node.run('''
-        pacman -Syu --noconfirm htop git docker docker-compose tmux vim &&
+        pacman -Syu --noconfirm htop git docker docker-compose tmux vim certbot &&
         systemctl enable docker &&
+        certbot certonly --standalone -d {subdomain}.{domain} --agree-tos -n -m {lets_encrypt_email} &&
         echo "tcp_bbr" > /etc/modules-load.d/80-bbr.conf &&
         touch /etc/sysctl.d/80-bbr.conf &&
         sed -i '/net.core.default_qdisc/d' /etc/sysctl.d/80-bbr.conf &&
         sed -i '/net.ipv4.tcp_congestion_control/d' /etc/sysctl.d/80-bbr.conf &&
         echo "net.core.default_qdisc=fq" >> /etc/sysctl.d/80-bbr.conf &&
         echo "net.ipv4.tcp_congestion_control=bbr" >> /etc/sysctl.d/80-bbr.conf
-    ''')
+    '''.format(
+        subdomain=subdomain,
+        domain=name.domain,
+        lets_encrypt_email=lets_encrypt.email,
+    ))
     if reboot:
         node.reboot()
         time.sleep(15)
@@ -153,8 +161,13 @@ def proxy_recreate(label, ltype, region, image, subdomain, recreate, reboot):
         rm -rf ~/dockers/ &&
         git clone https://github.com/Erriy/dockers.git &&
         cd dockers &&
+        sed -i 's/NGINX_SERVER_NAME/{subdomain}.{domain}/g' v2ray/nginx.conf &&
+        cp -L /etc/letsencrypt/live/{subdomain}.{domain}*/*.pem v2ray/ &&
         docker-compose up --force-recreate -d
-    ''')
+    '''.format(
+        subdomain=subdomain,
+        domain=name.domain,
+    ))
     # 更新dns记录
     print('更新dns记录')
     name.update(subdomain, node.ipv4[0])
