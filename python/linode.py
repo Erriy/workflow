@@ -143,18 +143,13 @@ def proxy_recreate(label, ltype, region, image, subdomain, recreate, reboot):
     node.run('''
         pacman -Syu --noconfirm htop git docker docker-compose tmux vim certbot &&
         systemctl enable docker &&
-        certbot certonly --standalone -d {subdomain}.{domain} --agree-tos -n -m {lets_encrypt_email} &&
         echo "tcp_bbr" > /etc/modules-load.d/80-bbr.conf &&
         touch /etc/sysctl.d/80-bbr.conf &&
         sed -i '/net.core.default_qdisc/d' /etc/sysctl.d/80-bbr.conf &&
         sed -i '/net.ipv4.tcp_congestion_control/d' /etc/sysctl.d/80-bbr.conf &&
         echo "net.core.default_qdisc=fq" >> /etc/sysctl.d/80-bbr.conf &&
         echo "net.ipv4.tcp_congestion_control=bbr" >> /etc/sysctl.d/80-bbr.conf
-    '''.format(
-        subdomain=subdomain,
-        domain=name.domain,
-        lets_encrypt_email=lets_encrypt.email,
-    ))
+    ''')
     if reboot:
         node.reboot()
         time.sleep(15)
@@ -165,11 +160,13 @@ def proxy_recreate(label, ltype, region, image, subdomain, recreate, reboot):
         git clone https://github.com/Erriy/dockers.git &&
         cd dockers &&
         sed -i 's/NGINX_SERVER_NAME/{subdomain}.{domain}/g' v2ray/nginx.conf &&
+        certbot certonly --standalone -d {subdomain}.{domain} --agree-tos -n -m {lets_encrypt_email} &&
         cp -L /etc/letsencrypt/live/{subdomain}.{domain}*/*.pem v2ray/ &&
         docker-compose up --force-recreate -d
     '''.format(
         subdomain=subdomain,
         domain=name.domain,
+        lets_encrypt_email=lets_encrypt.email,
     ))
 
 
