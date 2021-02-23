@@ -135,6 +135,9 @@ def proxy_recreate(label, ltype, region, image, subdomain, recreate, reboot):
     # 打开实例
     print('打开{}实例'.format(label))
     node = linode.node(label, ltype, region, image, recreate)
+    # 更新dns记录
+    print('更新dns记录')
+    name.update(subdomain, node.ipv4[0])
     # 环境安装
     print('开始初步安装环境并重启')
     node.run('''
@@ -168,9 +171,6 @@ def proxy_recreate(label, ltype, region, image, subdomain, recreate, reboot):
         subdomain=subdomain,
         domain=name.domain,
     ))
-    # 更新dns记录
-    print('更新dns记录')
-    name.update(subdomain, node.ipv4[0])
 
 
 if __name__ == "__main__":
