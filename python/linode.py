@@ -56,12 +56,17 @@ class linode:
                 time.sleep(3)
 
         def run(cmds):
-            # todo 链接失败重试，三次链接失败后再报错
             ready()
-            c = fabric.Connection(host=node.ipv4[0], user='root', connect_kwargs={'password': cls.password})
-            result = c.run(cmds)
-            c.close()
-            return result
+            for i in range(3):
+                try:
+                    c = fabric.Connection(host=node.ipv4[0], user='root', connect_kwargs={'password': cls.password})
+                    result = c.run(cmds)
+                    c.close()
+                    return result
+                except:
+                    print('[{}/3]远程执行任务失败，10秒后重试'.format(i))
+                    time.sleep(10)
+            raise '执行远程命令失败，自己看看怎么回事吧'
 
         node.ready = ready
         node.run = run
